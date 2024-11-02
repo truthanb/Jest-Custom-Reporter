@@ -1,6 +1,6 @@
 const fs = require('fs');
 const { execSync } = require('child_process');
-const { CoverageMap, createCoverageMap } = require('istanbul-lib-coverage');
+const path = require('path');
 
 class CustomReporter {
     constructor(globalConfig, options) {
@@ -34,37 +34,8 @@ class CustomReporter {
     }
 
     async onRunComplete() {
-        const coverageFile = './coverage/coverage-final.json'; // Adjust as needed
-        if (fs.existsSync(coverageFile)) {
-            const coverageData = JSON.parse(fs.readFileSync(coverageFile));
-            const coverageMap = createCoverageMap(coverageData);
-
-            // Process each failed test
-            this.failedTests = this.failedTests.map(failedTest => {
-                const coveredFiles = [];
-
-                // Get file and line coverage for each failed test
-                for (const [file, coverage] of Object.entries(coverageMap.data)) {
-                    const fileCoverage = coverage.s;
-                    const coveredLines = Object.entries(fileCoverage)
-                        .filter(([, hits]) => hits > 0)
-                        .map(([line]) => Number(line));
-
-                    coveredFiles.push({ file, coveredLines });
-                }
-
-                return { ...failedTest, coveredFiles };
-            });
-
-            const commitHash = await this.getCommitHash();
-
-    this.sendBatch({ commitHash, failedTests: this.failedTests });
-        }
-    }
-
-    sendBatch(failedTests) {
-        // Implement logic to send the `failedTests` batch to your service
-        console.log(JSON.stringify({ failedTests }, null, 2));
+        const failedTestsFile = path.join(this.globalConfig.rootDir, 'failed-tests.json');
+        fs.writeFileSync(failedTestsFile, JSON.stringify(this.failedTests, null, 2));
     }
 }
 
