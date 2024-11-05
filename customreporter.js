@@ -12,7 +12,6 @@ class CustomReporter {
     onTestResult(test, testResult) {
         if (!testResult.testResults.some(result => result.status === 'failed')) return;
 
-        // Collect failed tests
         testResult.testResults.forEach(result => {
             if (result.status === 'failed') {
                 this.failedTests.push({
